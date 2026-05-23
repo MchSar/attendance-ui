@@ -56,7 +56,13 @@ export default function App() {
 
   return (
 
-    <div className="min-h-screen bg-[#f5f7ff] flex justify-center items-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#eef2ff] via-[#f8faff] to-[#ede9fe] flex justify-center items-center p-4 relative overflow-hidden">
+
+  {/* BACKGROUND BLOBS */}
+
+  <div className="absolute top-0 left-0 w-72 h-72 bg-violet-300 opacity-20 blur-3xl rounded-full"></div>
+
+  <div className="absolute bottom-0 right-0 w-72 h-72 bg-blue-300 opacity-20 blur-3xl rounded-full"></div>
 
       <div className="w-full max-w-sm">
 
@@ -76,7 +82,7 @@ export default function App() {
 
         {/* FACE CARD */}
 
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-6 shadow-xl border border-white/50">
 
           <div className="flex items-center justify-between">
 
@@ -129,7 +135,7 @@ export default function App() {
 
         {/* VERIFICATION */}
 
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mt-6">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-6 shadow-xl border border-white/50 mt-6">
 
           <div className="flex items-center justify-between">
 
@@ -189,7 +195,7 @@ export default function App() {
 
         {/* STATUS */}
 
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mt-6 mb-8">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-6 shadow-xl border border-white/50 mt-6 mb-8">
 
           <div className="flex items-center justify-between">
 
