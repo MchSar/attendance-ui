@@ -34,7 +34,7 @@ export default function App() {
   const generateCode = async () => {
 
     const response = await fetch(
-      "http://127.0.0.1:5000/generate-code"
+      "https://attendance-ui-3.onrender.com"
     )
 
     const data = await response.json()
@@ -61,7 +61,7 @@ export default function App() {
  const checkFace = async () => {
 
   const response = await fetch(
-    "http://127.0.0.1:5000/face-status"
+    "https://attendance-ui-3.onrender.com"
   )
 
   const data = await response.json()
@@ -83,7 +83,7 @@ const verifyLocation = () => {
       )
 
       const response = await fetch(
-        "http://127.0.0.1:5000/verify-location",
+        "https://attendance-ui-3.onrender.com",
         {
           method: "POST",
           headers: {
@@ -109,7 +109,7 @@ const verifyLocation = () => {
 const getAnalytics = async () => {
 
   const response = await fetch(
-    "http://127.0.0.1:5000/analytics"
+    "https://attendance-ui-3.onrender.com"
   )
 
   const data = await response.json()
@@ -122,7 +122,7 @@ const getAnalytics = async () => {
 const getBehavior = async () => {
 
   const response = await fetch(
-    "http://127.0.0.1:5000/behavior"
+    "https://attendance-ui-3.onrender.com"
   )
 
   const data = await response.json()
