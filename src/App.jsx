@@ -1,12 +1,17 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+ import Webcam from "react-webcam"
 import {
   ScanFace,
   ShieldCheck,
   BadgeCheck,
   User,
   Building2,
+  House,
+  History,
+  BarChart3,
+  UserCircle,
 } from "lucide-react"
-
+ 
 export default function App() {
 
   const [code, setCode] = useState("------")
@@ -14,6 +19,17 @@ export default function App() {
   const [message, setMessage] = useState("")
   const [verified, setVerified] = useState(false)
   const [studentName, setStudentName] = useState("Unknown")
+  const [activeTab, setActiveTab] = useState("home")
+  const [cameraOn, setCameraOn] = useState(false)
+  const [location, setLocation] = useState("Detecting...")
+  const [distance, setDistance] = useState("0m")
+  const [locationVerified, setLocationVerified] = useState(false)
+  const [attendanceRate, setAttendanceRate] = useState(0)
+  const [presentCount, setPresentCount] = useState(0)
+  const [absentCount, setAbsentCount] = useState(0)
+  const [punctuality, setPunctuality] = useState(0)
+  const [consistency, setConsistency] = useState(0)
+  const [discipline, setDiscipline] = useState(0)
 
   const generateCode = async () => {
 
@@ -42,21 +58,99 @@ export default function App() {
 
   }
 
-  const checkFace = async () => {
+ const checkFace = async () => {
 
-    const response = await fetch(
-      "http://127.0.0.1:5000/face-status"
-    )
+  const response = await fetch(
+    "http://127.0.0.1:5000/face-status"
+  )
 
-    const data = await response.json()
+  const data = await response.json()
 
-    setStudentName(data.student)
+  setStudentName(data.student)
 
-  }
+}
+const verifyLocation = () => {
+
+  navigator.geolocation.getCurrentPosition(
+
+    async (position) => {
+
+      const lat = position.coords.latitude
+      const lon = position.coords.longitude
+
+      setLocation(
+        `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`
+      )
+
+      const response = await fetch(
+        "http://127.0.0.1:5000/verify-location",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            lat,
+            lon
+          })
+        }
+      )
+
+      const data = await response.json()
+
+      setLocationVerified(data.verified)
+      setDistance(data.message)
+
+    }
+
+  )
+
+}
+const getAnalytics = async () => {
+
+  const response = await fetch(
+    "http://127.0.0.1:5000/analytics"
+  )
+
+  const data = await response.json()
+
+  setAttendanceRate(data.attendanceRate)
+  setPresentCount(data.present)
+  setAbsentCount(data.absent)
+
+}
+const getBehavior = async () => {
+
+  const response = await fetch(
+    "http://127.0.0.1:5000/behavior"
+  )
+
+  const data = await response.json()
+
+  setPunctuality(data.punctuality)
+  setConsistency(data.consistency)
+  setDiscipline(data.discipline)
+
+}
+useEffect(() => {
+  getBehavior()
+}, [])
+
+useEffect(() => {
+  verifyLocation()
+}, [])
+useEffect(() => {
+  getAnalytics()
+}, [])
+
+
+  // useEffect(() => {
+//   getLocation()
+// }, [])
 
   return (
 
-    <div className="min-h-screen bg-gradient-to-br from-[#eef2ff] via-[#f8faff] to-[#ede9fe] flex justify-center items-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#eef2ff] via-[#f8faff] to-[#ede9fe] flex justify-center items-start p-4 relative overflow-hidden">
 
   {/* BACKGROUND BLOBS */}
 
@@ -64,13 +158,15 @@ export default function App() {
 
   <div className="absolute bottom-0 right-0 w-72 h-72 bg-blue-300 opacity-20 blur-3xl rounded-full"></div>
 
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md lg:max-w-7xl">
 
-        {/* HEADER */}
+ <div className="space-y-6">
 
-        <div className="text-center mb-6">
+   {/* HEADER */}
 
-          <h1 className="text-3xl font-black text-gray-800">
+        <div className="text-center mb-4">
+
+          <h1 className="text-4xl font-black tracking-tight text-gray-800">
             AI Smart Attendance
           </h1>
 
@@ -80,9 +176,13 @@ export default function App() {
 
         </div>
 
+
+  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+       
         {/* FACE CARD */}
 
-        <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-6 shadow-xl border border-white/50">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-4 shadow-xl border border-white/50 h-[500px]">
 
           <div className="flex items-center justify-between">
 
@@ -100,42 +200,59 @@ export default function App() {
 
           {/* FACE SCAN */}
 
-          <div className="mt-6 flex justify-center">
+          <div className="mt-4 flex justify-center">
 
-            <div className="w-52 h-52 rounded-3xl border-[6px] border-violet-500 bg-gradient-to-br from-violet-100 to-blue-100 flex items-center justify-center relative overflow-hidden">
+            <div className="w-44 h-44 rounded-3xl border-[6px] border-violet-500 bg-gradient-to-br from-violet-100 to-blue-100 flex items-center justify-center relative overflow-hidden">
 
               <div className="absolute w-full h-2 bg-violet-500 animate-pulse"></div>
 
-              <ScanFace size={80} className="text-violet-700" />
+             {cameraOn ? (
 
+  <Webcam
+    audio={false}
+    screenshotFormat="image/jpeg"
+    className="w-full h-full object-cover"
+  />
+
+) : (
+
+  <ScanFace size={80} className="text-violet-700" />
+
+)}
             </div>
 
           </div>
 
-          <div className="text-center mt-5">
+          <div className="text-center mt-4">
 
             <p className="text-green-600 font-semibold">
               Face Recognized
             </p>
 
-            <h2 className="text-2xl font-bold text-gray-800 mt-1">
+            <h2 className="text-2xl font-bold text-gray-800 mt-4">
               {studentName}
             </h2>
 
           </div>
 
           <button
-            onClick={checkFace}
-            className="w-full h-14 mt-6 rounded-2xl bg-gradient-to-r from-violet-600 to-blue-500 text-white font-semibold shadow-lg hover:scale-[1.02] duration-200"
+            onClick={() => {
+  setCameraOn(!cameraOn)
+
+  if (!cameraOn) {
+    checkFace()
+  }
+}}
+            className="w-full h-14 mt-4 rounded-2xl bg-gradient-to-r from-violet-600 to-blue-500 text-white font-semibold shadow-lg hover:scale-[1.02] duration-200"
           >
-            Scan Face
+            {cameraOn ? "Stop Scan" : "Start Scan"}
           </button>
 
         </div>
 
         {/* VERIFICATION */}
 
-        <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-6 shadow-xl border border-white/50 mt-6">
+        <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-4 shadow-xl border border-white/50 mt-4 h-[500px]">
 
           <div className="flex items-center justify-between">
 
@@ -153,7 +270,7 @@ export default function App() {
 
           {/* CODE */}
 
-          <div className="mt-8 text-center">
+          <div className="mt-4 text-center">
 
             <h1 className="text-4xl font-black tracking-[10px] text-violet-600">
               {code}
@@ -161,7 +278,7 @@ export default function App() {
 
             <button
               onClick={generateCode}
-              className="mt-6 px-6 h-12 rounded-2xl bg-violet-600 text-white font-semibold hover:bg-violet-700 duration-200"
+              className="mt-4 px-6 h-12 rounded-2xl bg-violet-600 text-white font-semibold hover:bg-violet-700 duration-200"
             >
               Generate Code
             </button>
@@ -175,148 +292,214 @@ export default function App() {
             placeholder="Enter Verification Code"
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
-            className="w-full h-14 mt-6 rounded-2xl border border-gray-200 px-4 text-center text-2xl font-bold outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full h-14 mt-4 rounded-2xl border border-gray-200 px-4 text-center text-2xl font-bold outline-none focus:ring-2 focus:ring-violet-500"
           />
 
           <button
             onClick={verifyCode}
-            className="w-full h-14 mt-6 rounded-2xl bg-gradient-to-r from-violet-600 to-blue-500 text-white font-semibold shadow-lg hover:scale-[1.02] duration-200"
+            className="w-full h-14 mt-4 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-500 to-blue-500 text-white font-semibold shadow-violet-300/40 hover:scale-[1.02] duration-200"
           >
             Verify Attendance
           </button>
 
-          <p className={`text-center mt-4 font-semibold ${
-            verified ? "text-green-600" : "text-red-500"
-          }`}>
-            {message}
-          </p>
+         <div className={`text-center mt-4 font-semibold ${
+  verified ? "text-green-600" : "text-red-500"
+}`}>
+  {message}
+            {verified && (
 
-        </div>
+  <div className="mt-6 bg-green-50 rounded-2xl p-4">
 
-        {/* STATUS */}
+    <h2 className="text-green-700 font-bold text-xl">
+      Attendance Marked
+    </h2>
 
-        <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-6 shadow-xl border border-white/50 mt-6 mb-8">
+    <p className="text-gray-600 mt-2">
+      {studentName}
+    </p>
 
-          <div className="flex items-center justify-between">
+  </div>
 
-            <h2 className="text-xl font-bold text-gray-800">
-              Attendance Status
-            </h2>
-
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-              verified ? "bg-green-100" : "bg-gray-100"
-            }`}>
-
-              <BadgeCheck className={
-                verified ? "text-green-600" : "text-gray-400"
-              } />
-
-            </div>
-
+)}
           </div>
 
-          {!verified ? (
-
-            <div className="text-center mt-10">
-
-              <div className="w-24 h-24 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
-
-                <BadgeCheck size={40} className="text-gray-400" />
-
-              </div>
-
-              <p className="mt-5 text-gray-500">
-                Waiting for verification
-              </p>
-
-            </div>
-
-          ) : (
-
-            <div className="mt-8">
-
-              <div className="w-24 h-24 mx-auto rounded-full bg-green-500 flex items-center justify-center shadow-lg">
-
-                <BadgeCheck size={45} className="text-white" />
-
-              </div>
-
-              <h1 className="text-3xl font-black text-center text-green-600 mt-5">
-                Attendance Marked
-              </h1>
-
-              {/* DETAILS */}
-
-              <div className="space-y-4 mt-8">
-
-                <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4">
-
-                  <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
-
-                    <User className="text-violet-600" />
-
-                  </div>
-
-                  <div>
-
-                    <p className="text-sm text-gray-500">
-                      Student Name
-                    </p>
-
-                    <h2 className="font-bold text-gray-800">
-                      {studentName}
-                    </h2>
-
-                  </div>
-
-                </div>
-
-                <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4">
-
-                  <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-
-                    <Building2 className="text-blue-600" />
-
-                  </div>
-
-                  <div>
-
-                    <p className="text-sm text-gray-500">
-                      Department
-                    </p>
-
-                    <h2 className="font-bold text-gray-800">
-                      Computer Science
-                    </h2>
-
-                  </div>
-
-                </div>
-
-                <div className="bg-green-50 rounded-2xl p-4">
-
-                  <p className="text-sm text-green-600">
-                    Attendance Status
-                  </p>
-
-                  <h2 className="font-black text-2xl text-green-700">
-                    PRESENT
-                  </h2>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          )}
-
         </div>
 
+</div>
+
+{/* DASHBOARD GRID */}
+
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+  {/* STUDENT BEHAVIOR */}
+
+  <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-4 shadow-xl border border-white/50 h-[320px]">
+
+    <h2 className="text-2xl font-bold text-gray-800">
+      Student Behavior
+    </h2>
+
+    <div className="mt-6">
+
+      <div className="flex justify-between mb-2">
+        <span>Punctuality</span>
+        <span>{punctuality}%</span>
+      </div>
+
+      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-violet-500"
+          style={{ width: `${punctuality}%` }}
+        ></div>
       </div>
 
     </div>
 
-  )
+  </div>
 
+  {/* LOCATION */}
+
+  <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-4 shadow-xl border border-white/50 h-[320px]">
+
+    <h2 className="text-2xl font-bold text-gray-800">
+      Location
+    </h2>
+
+    <p className="mt-6 text-gray-600">
+      {location}
+    </p>
+
+    <div className="mt-4 bg-green-50 rounded-2xl p-4">
+
+      <p className="text-green-700 font-semibold">
+        {locationVerified
+          ? `GPS Verified • ${distance}`
+          : "Location Failed"}
+      </p>
+
+    </div>
+
+  </div>
+
+  {/* ANALYTICS */}
+
+  <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-4 shadow-xl border border-white/50 h-[320px]">
+
+    <h2 className="text-2xl font-bold text-gray-800">
+      Analytics
+    </h2>
+
+    <h1 className="text-5xl font-black text-violet-600 mt-6">
+      {attendanceRate}%
+    </h1>
+
+    <div className="grid grid-cols-2 gap-4 mt-6">
+
+      <div className="bg-green-50 rounded-2xl p-4">
+        <p>Present</p>
+        <h2 className="text-2xl font-bold">
+          {presentCount}
+        </h2>
+      </div>
+
+      <div className="bg-red-50 rounded-2xl p-4">
+        <p>Absent</p>
+        <h2 className="text-2xl font-bold">
+          {absentCount}
+        </h2>
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* TIMETABLE */}
+
+  <div className="bg-white/70 backdrop-blur-2xl rounded-[32px] p-4 shadow-xl border border-white/50 h-[320px]">
+
+    <h2 className="text-2xl font-bold text-gray-800">
+      Timetable
+    </h2>
+
+    <div className="mt-4 space-y-3">
+
+      <div className="bg-violet-50 rounded-2xl p-3">
+        AI • 9:00 AM
+      </div>
+
+      <div className="bg-blue-50 rounded-2xl p-3">
+        DBMS • 11:00 AM
+      </div>
+
+      <div className="bg-green-50 rounded-2xl p-3">
+        ML • 1:00 PM
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{/* BOTTOM NAVIGATION */}
+
+<div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-white/80 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-xl px-6 py-4 flex justify-between items-center">
+
+  <button
+    onClick={() => setActiveTab("home")}
+    className={`flex flex-col items-center text-sm ${
+      activeTab === "home"
+        ? "text-violet-600"
+        : "text-gray-400"
+    }`}
+  >
+    <House size={22} />
+    <span className="mt-1">Home</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab("history")}
+    className={`flex flex-col items-center text-sm ${
+      activeTab === "history"
+        ? "text-violet-600"
+        : "text-gray-400"
+    }`}
+  >
+    <History size={22} />
+    <span className="mt-1">History</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab("analytics")}
+    className={`flex flex-col items-center text-sm ${
+      activeTab === "analytics"
+        ? "text-violet-600"
+        : "text-gray-400"
+    }`}
+  >
+    <BarChart3 size={22} />
+    <span className="mt-1">Analytics</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab("profile")}
+    className={`flex flex-col items-center text-sm ${
+      activeTab === "profile"
+        ? "text-violet-600"
+        : "text-gray-400"
+    }`}
+  >
+    <UserCircle size={22} />
+    <span className="mt-1">Profile</span>
+  </button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+  )
 }

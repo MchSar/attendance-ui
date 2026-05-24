@@ -1,61 +1,82 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-from deepface import DeepFace
-import cv2
+import random
+import math
+
+print("FLASK STARTING...")
 
 app = Flask(__name__)
-
 CORS(app)
-
-camera = cv2.VideoCapture(0)
-
-recognized_name = "Unknown"
-
-@app.route("/generate-code")
-def generate_code():
-
-    import random
-
-    code = random.randint(100000, 999999)
-
-    return jsonify({
-        "code": code
-    })
 
 @app.route("/face-status")
 def face_status():
+    return jsonify({
+        "student": "Sarthak Choudhary",
+        "status": "recognized"
+    })
 
-    global recognized_name
-
-    success, frame = camera.read()
-
-    if success:
-
-        try:
-
-            result = DeepFace.find(
-                img_path=frame,
-                db_path="faces",
-                enforce_detection=False
-            )
-
-            if len(result[0]) > 0:
-
-                name = result[0]['identity'][0]
-
-                name = name.split("\\")[-1]
-
-                name = name.split(".")[0]
-
-                recognized_name = name
-
-        except:
-            pass
+@app.route("/generate-code")
+def generate_code():
+    code = random.randint(100000, 999999)
 
     return jsonify({
-        "student": recognized_name
+        "code": str(code)
+    })
+
+@app.route("/verify-location", methods=["POST"])
+def verify_location():
+
+    data = request.json
+
+    user_lat = data["lat"]
+    user_lon = data["lon"]
+
+    campus_lat = 22.5726
+    campus_lon = 88.3639
+
+    distance = math.sqrt(
+        (user_lat - campus_lat) ** 2 +
+        (user_lon - campus_lon) ** 2
+    )
+
+    if distance < 0.01:
+        return jsonify({
+            "verified": True,
+            "message": "Inside Campus Range"
+        })
+
+    else:
+        return jsonify({
+            "verified": False,
+            "message": "Outside Campus Range"
+        })
+
+@app.route("/analytics")
+def analytics():
+
+    total_classes = 90
+    present = 75
+    absent = 5
+
+    attendance_rate = int(
+        (present / total_classes) * 100
+    )
+
+    return jsonify({
+        "attendanceRate": attendance_rate,
+        "present": present,
+        "absent": absent
+    })
+@app.route("/behavior")
+def behavior():
+
+    return jsonify({
+
+        "punctuality": 92,
+        "consistency": 88,
+        "discipline": 95
+
     })
 
 if __name__ == "__main__":
-
     app.run(debug=True)
